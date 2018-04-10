@@ -32,8 +32,8 @@ int main(int argc, char *argv[])
 
     portno = atoi(argv[2]);
 
-    //Create socket
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);   //AF_INET: address domain of socket; SOCK_STREAM: type of socket (specifies UDP or TCP); 0: Protocol
+    //Create socket, socket(family, type, protocol)
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);   //AF_INET: IPv4 family; SOCK_STREAM: stream socket(TCP); 0: system default
 
     if (sockfd < 0)
         error("ERROR opening socket");
