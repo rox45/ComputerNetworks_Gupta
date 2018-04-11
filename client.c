@@ -23,6 +23,8 @@ int main(int argc, char *argv[])
     struct sockaddr_in serv_addr; //struct containing server address
     struct hostent *server;
 
+    int bytesReceived = 0;
+
     char buffer[256];
 
     if (argc < 3) {
@@ -62,14 +64,33 @@ int main(int argc, char *argv[])
         error("ERROR connecting");
     
 
-    printf("Please enter the message: ");
+    printf("Enter file name: ");
     
     bzero(buffer,256);  //Clear/initialize buffer to 0
     fgets(buffer,255,stdin);    //Write input to buffer
 
-    n = write(sockfd, buffer, strlen(buffer));  //Write message to server
+    n = write(sockfd, buffer, strlen(buffer));  //Write file name to server
 
-    if (n < 0) 
+    //Create file
+    FILE *fp;
+    fp = fopen(buffer, "ab");
+    if (NULL == fp) {
+        printf("Error opening file");
+        return 1;
+    }
+
+    //Recieve data
+    while ((bytesReceived = read(sockfd, buffer, 256)) > 0) {
+         printf("Bytes received %d\n", 1, bytesReceived);
+         fwrite(buffer, 1, bytesReceived, fp);
+
+    }
+
+    if (bytesReceived < 0) {
+        error("ERROR read error");
+    }
+
+    if (n < 0)
          error("ERROR writing to socket");
     bzero(buffer,256);
 
@@ -79,6 +100,7 @@ int main(int argc, char *argv[])
          error("ERROR reading from socket");
     printf("%s\n", buffer);
 
+    fclose(fp);
     close(sockfd);
     return 0;
 }

@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
      int n; //return value for read and write calls
      socklen_t clilen;
      char buffer[256];
+     char* filename;
 
      if (argc < 2) {
          fprintf(stderr,"ERROR, no port provided\n");
@@ -30,7 +31,7 @@ int main(int argc, char *argv[])
      }
 
      //Create socket
-     sockfd =  socket(AF_INET, SOCK_STREAM, 0); //AF_INET: address domain of socket; SOCK_STREAM: type of socket (specify UDP or TCP); 0: Protocol
+     sockfd =  socket(AF_INET, SOCK_STREAM, 0); ///AF_INET: IPv4 family; SOCK_STREAM: stream socket(TCP); 0: system default
      if (sockfd < 0) 
         error("ERROR opening socket");
 
@@ -72,16 +73,60 @@ int main(int argc, char *argv[])
 
 
      //This send() function sends the 13 bytes of the string to the new socket
-     send(newsockfd, "Hello, world!\n", 13, 0);
+     //send(newsockfd, "ack!\n", 13, 0);
 
      //Clear/initialize buffer to 0
      bzero(buffer,256);
 
      n = read(newsockfd,buffer,255);
      if (n < 0) error("ERROR reading from socket");
-     printf("Here is the message: %s\n",buffer);
 
+//printf("Filename recieved from client: %s\n",buffer);
+
+     //Copy filename from buffer
+     filename = malloc(strlen(buffer) + 1);
+     strcpy(filename, buffer);
+
+     printf("THIS IS YOUR FILENAME: %s\n", buffer);
+
+     //Clear buffer
+     bzero(buffer, 256);
+
+     //Open file
+     FILE * fp = fopen(filename, "rb");
+
+     if (fp == NULL) {
+        error("ERROR file not found");
+     }
+
+     while(1) {
+        //Read 256 bytes
+        int nread = fread(buffer, 1, 256, fp);
+        printf("Bytes read %d\n", nread);
+
+        //Read success, send data
+        if (nread > 0) {
+            printf("Sending\n");
+            write(newsockfd, buffer, nread);
+        }
+
+        if (nread < 256) {
+            if (feof(fp)) {
+                printf("End of file\n");
+            }
+            if (ferror(fp)) {
+                printf("Error reading\n");
+            }
+            break;
+        }
+     }
+
+     //Clear buffer
+     bzero(buffer, 256);
+
+     fclose(fp);
      close(newsockfd);
      close(sockfd);
+     
      return 0; 
 }

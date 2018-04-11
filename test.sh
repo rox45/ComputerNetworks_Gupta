@@ -14,5 +14,5 @@ sleep 1
 
 # Open new terminal and run client
 osascript -e 'tell application "Terminal" 
-	do script "cd /Users/ryota/Documents/GitHub/ComputerNetworksProject && printf \"test file successful\" | ./client 127.0.0.1 9000" 
+	do script "cd /Users/ryota/Documents/GitHub/ComputerNetworksProject && printf \"file.txt\" | ./client 127.0.0.1 9000" 
 end tell'
