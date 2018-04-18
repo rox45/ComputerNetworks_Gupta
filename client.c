@@ -37,13 +37,14 @@ int main(int argc, char *argv[])
     //Create socket, socket(family, type, protocol)
     sockfd = socket(AF_INET, SOCK_STREAM, 0);   //AF_INET: IPv4 family; SOCK_STREAM: stream socket(TCP); 0: system default
 
-    if (sockfd < 0)
+    if (sockfd < 0) {
         error("ERROR opening socket");
+    }
 
     server = gethostbyname(argv[1]);
 
     if (server == NULL) {
-        fprintf(stderr,"ERROR, no such host\n");
+        fprintf(stderr, "ERROR, no such host\n");
         exit(1);
     }
 
@@ -60,14 +61,15 @@ int main(int argc, char *argv[])
     serv_addr.sin_port = htons(portno);
     
     //Connect to server
-    if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
+    if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         error("ERROR connecting");
+    }
     
 
     printf("Enter file name: ");
     
-    bzero(buffer,256);  //Clear/initialize buffer to 0
-    fgets(buffer,255,stdin);    //Write input to buffer
+    bzero(buffer, 256);  //Clear/initialize buffer to 0
+    fgets(buffer, 255, stdin);    //Write input to buffer
 
     n = write(sockfd, buffer, strlen(buffer));  //Write file name to server
 
@@ -92,12 +94,15 @@ int main(int argc, char *argv[])
 
     if (n < 0)
          error("ERROR writing to socket");
-    bzero(buffer,256);
+
+    bzero(buffer, 256);
 
     n = read(sockfd, buffer, 255);
 
-    if (n < 0) 
+    if (n < 0) {
          error("ERROR reading from socket");
+     }
+
     printf("%s\n", buffer);
 
     fclose(fp);

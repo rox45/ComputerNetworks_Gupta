@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     }
 
      //Listen for incoming connections with a backlog queue of 5
-     listen(sockfd,5);
+     listen(sockfd, 5);
 
      clilen = sizeof(cli_addr);
 
@@ -75,10 +75,10 @@ int main(int argc, char *argv[]) {
      //send(newsockfd, "ack!\n", 13, 0);
 
      //Clear/initialize buffer to 0
-     bzero(buffer,256);
+     bzero(buffer, 256);
 
-     n = read(newsockfd,buffer,255);
-     
+     n = read(newsockfd, buffer, 255);
+
      if (n < 0) {
         error("ERROR reading from socket");
     }
@@ -88,10 +88,6 @@ int main(int argc, char *argv[]) {
      //Copy filename from buffer
      filename = malloc(strlen(buffer) + 1);
      strcpy(filename, buffer);
-
-     printf("THIS IS YOUR FILENAME: %s\n", buffer);
-
-     //Clear buffer
      bzero(buffer, 256);
 
      //Open file
@@ -99,9 +95,10 @@ int main(int argc, char *argv[]) {
 
      if (fp == NULL) {
         error("ERROR file not found");
+
      }
 
-     while(1) {
+     while (1) {
         //Read 256 bytes
         int nread = fread(buffer, 1, 256, fp);
         printf("Bytes read %d\n", nread);
