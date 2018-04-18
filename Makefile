@@ -1,5 +1,5 @@
 server:
-	gcc -o server server.c
+	gcc -o serverBinaries/server server.c
 client:
-	gcc -o client client.c
+	gcc -o clientBinaries/client client.c
 

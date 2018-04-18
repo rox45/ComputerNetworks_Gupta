@@ -17,8 +17,8 @@ void error(const char *msg)
 
 int main(int argc, char *argv[])
 {
-     int sockfd, newsockfd;    //File descriptors in file descriptor table, stores value returned by socket system call
-     int portno;    //Port number for server to accept connections
+    int sockfd, newsockfd;    //File descriptors in file descriptor table, stores value returned by socket system call
+    int portno;    //Port number for server to accept connections
      struct sockaddr_in serv_addr, cli_addr;    //struct containing server address
      int n; //return value for read and write calls
      socklen_t clilen;
@@ -51,9 +51,9 @@ int main(int argc, char *argv[])
      serv_addr.sin_port = htons(portno);
 
      //Bind the socket to the address
-     if (bind(sockfd, (struct sockaddr *) &serv_addr,
-              sizeof(serv_addr)) < 0) 
+     if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
               error("ERROR on binding");
+      }
 
      //Listen for incoming connections with a backlog queue of 5
      listen(sockfd,5);
@@ -62,8 +62,7 @@ int main(int argc, char *argv[])
 
     /* accept() blocks until client connects to server, returns file descriptor which */
     /* should be used for all communications on this connection  */
-     newsockfd = accept(sockfd, 
-                 (struct sockaddr *) &cli_addr, &clilen);
+     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
      if (newsockfd < 0) 
           error("ERROR on accept");
