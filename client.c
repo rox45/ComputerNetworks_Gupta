@@ -92,8 +92,9 @@ int main(int argc, char *argv[])
         error("ERROR read error");
     }
 
-    if (n < 0)
+    if (n < 0) {
          error("ERROR writing to socket");
+     }
 
     bzero(buffer, 256);
 

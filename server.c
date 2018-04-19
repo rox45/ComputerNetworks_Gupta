@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
     char* filename;
 
     if (argc < 2) {
-        fprintf(stderr,"ERROR, no port provided\n");
+        fprintf(stderr, "ERROR, no port provided\n");
         exit(1);
     }
 
@@ -55,50 +55,50 @@ int main(int argc, char *argv[]) {
         error("ERROR on binding");
     }
 
-     //Listen for incoming connections with a backlog queue of 5
-     listen(sockfd, 5);
+    //Listen for incoming connections with a backlog queue of 5
+    listen(sockfd, 5);
 
-     clilen = sizeof(cli_addr);
+    clilen = sizeof(cli_addr);
 
     /* accept() blocks until client connects to server, returns file descriptor which */
     /* should be used for all communications on this connection  */
-     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
-     if (newsockfd < 0) {
-          error("ERROR on accept");
-     }
+    if (newsockfd < 0) {
+        error("ERROR on accept");
+    }
 
-     printf("server: got connection from %s port %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
+    printf("server: got connection from %s port %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 
 
-     //This send() function sends the 13 bytes of the string to the new socket
-     //send(newsockfd, "ack!\n", 13, 0);
+    //This send() function sends the 13 bytes of the string to the new socket
+    //send(newsockfd, "ack!\n", 13, 0);
 
-     //Clear/initialize buffer to 0
-     bzero(buffer, 256);
+    //Clear/initialize buffer to 0
+    bzero(buffer, 256);
 
-     n = read(newsockfd, buffer, 255);
+    n = read(newsockfd, buffer, 255);
 
-     if (n < 0) {
+    if (n < 0) {
         error("ERROR reading from socket");
     }
 
 //printf("Filename recieved from client: %s\n",buffer);
 
-     //Copy filename from buffer
-     filename = malloc(strlen(buffer) + 1);
-     strcpy(filename, buffer);
-     bzero(buffer, 256);
+    //Copy filename from buffer
+    filename = malloc(strlen(buffer) + 1);
+    strcpy(filename, buffer);
+    bzero(buffer, 256);
 
-     //Open file
-     FILE * fp = fopen(filename, "rb");
+    //Open file
+    FILE * fp = fopen(filename, "rb");
 
-     if (fp == NULL) {
+    if (fp == NULL) {
         error("ERROR file not found");
 
      }
 
-     while (1) {
+    while (1) {
         //Read 256 bytes
         int nread = fread(buffer, 1, 256, fp);
         printf("Bytes read %d\n", nread);
@@ -120,12 +120,11 @@ int main(int argc, char *argv[]) {
         }
      }
 
-     //Clear buffer
-     bzero(buffer, 256);
+    bzero(buffer, 256);
 
-     fclose(fp);
-     close(newsockfd);
-     close(sockfd);
+    fclose(fp);
+    close(newsockfd);
+    close(sockfd);
      
-     return 0; 
+    return 0; 
 }
