@@ -76,6 +76,11 @@ int main(int argc, char *argv[]) {
         memset(buffer, 0, 256);
         fgets(buffer, 255, stdin);    //Write input to buffer
 
+        //remove suspect newline from input
+        if (buffer[strlen(buffer) - 1] == '\n') {
+            buffer[strlen(buffer) - 1] = '\0';
+        }
+
         n = write(sockfd, buffer, strlen(buffer));  //Write file name to server
 
         filename = malloc(strlen(buffer) + 1);

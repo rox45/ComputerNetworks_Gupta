@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
         fp = fopen(filename, "rb");
 
         if (fp == NULL) {
-            printf("file not found\n", filename);
+            printf("file \"%s\" is not found\n", filename);
             write(newsockfd, "server: file not found", 23);
         }
         else {
