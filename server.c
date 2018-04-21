@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     }
 
     //Clear address structure
-    bzero((char *) &serv_addr, sizeof(serv_addr));
+    memset((char *) &serv_addr, 0, sizeof(serv_addr));
 
     portno = atoi(argv[1]);
 
@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
     //send(newsockfd, "ack!\n", 13, 0);
 
     //Clear/initialize buffer to 0
-    bzero(buffer, 256);
+    memset(buffer, 0, 256);
 
     n = read(newsockfd, buffer, 255);
 
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
     //Copy filename from buffer
     filename = malloc(strlen(buffer) + 1);
     strcpy(filename, buffer);
-    bzero(buffer, 256);
+    memset(buffer, 0, 256);
 
     //Open file
     FILE * fp = fopen(filename, "rb");
@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
         }
      }
 
-    bzero(buffer, 256);
+    memset(buffer, 0, 256);
 
     fclose(fp);
     close(newsockfd);

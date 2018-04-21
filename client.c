@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    bzero((char *) &serv_addr, sizeof(serv_addr));  //Clear address structure
+    memset((char *) &serv_addr, 0, sizeof(serv_addr));  //Clear address structure
 
      //Setup the host_addr structure for use in bind call
      //Server byte order
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
     printf("Enter file name: ");
     
-    bzero(buffer, 256);  //Clear/initialize buffer to 0
+    memset(buffer, 0, 256);  //Clear/initialize buffer to 0
     fgets(buffer, 255, stdin);    //Write input to buffer
 
     n = write(sockfd, buffer, strlen(buffer));  //Write file name to server
@@ -85,7 +85,6 @@ int main(int argc, char *argv[])
     while ((bytesReceived = read(sockfd, buffer, 256)) > 0) {
          printf("Bytes received %d\n", 1, bytesReceived);
          fwrite(buffer, 1, bytesReceived, fp);
-
     }
 
     if (bytesReceived < 0) {
@@ -96,7 +95,7 @@ int main(int argc, char *argv[])
          error("ERROR writing to socket");
      }
 
-    bzero(buffer, 256);
+    memset(buffer, 0, 256);
 
     n = read(sockfd, buffer, 255);
 
