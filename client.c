@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     server = gethostbyname(argv[1]);
 
     if (server == NULL) {
-        fprintf(stderr, "ERROR, no such host\n");
+        fprintf(stderr, "ERROR no such host\n");
         exit(1);
     }
 
@@ -77,8 +77,8 @@ int main(int argc, char *argv[])
     FILE *fp;
     fp = fopen(buffer, "ab");
     if (NULL == fp) {
-        printf("Error opening file");
-        return 1;
+        fprintf(stderr, "Error opening file");
+        exit(1);
     }
 
     //Recieve data

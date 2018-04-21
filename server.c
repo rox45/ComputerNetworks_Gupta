@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
     char* filename;
 
     if (argc < 2) {
-        fprintf(stderr, "ERROR, no port provided\n");
+        fprintf(stderr, "ERROR no port provided\n");
         exit(1);
     }
 
@@ -114,7 +114,8 @@ int main(int argc, char *argv[]) {
                 printf("End of file\n");
             }
             if (ferror(fp)) {
-                printf("Error reading\n");
+                fprintf(stderr, "Error reading\n");
+                exit(1);
             }
             break;
         }
