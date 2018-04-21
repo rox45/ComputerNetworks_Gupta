@@ -20,8 +20,13 @@ int main(int argc, char *argv[]) {
     struct sockaddr_in serv_addr, cli_addr;    //struct containing server address
     int n; //return value for read and write calls
     socklen_t clilen;
+
     char buffer[256];
     char* filename;
+    
+    FILE* fp;
+
+    int boolFileFound = 0;
 
     if (argc < 2) {
         fprintf(stderr, "ERROR no port provided\n");
@@ -74,29 +79,33 @@ int main(int argc, char *argv[]) {
     //This send() function sends the 13 bytes of the string to the new socket
     //send(newsockfd, "ack!\n", 13, 0);
 
-    //Clear/initialize buffer to 0
-    memset(buffer, 0, 256);
+    while(!boolFileFound) {
+        //Clear/initialize buffer to 0
+        memset(buffer, 0, 256);
 
-    n = read(newsockfd, buffer, 255);
+        n = read(newsockfd, buffer, 255);
 
-    if (n < 0) {
-        error("ERROR reading from socket");
+        if (n < 0) {
+            error("ERROR reading from socket");
+        }
+
+        //Copy filename from buffer
+        filename = malloc(strlen(buffer) + 1);
+        strcpy(filename, buffer);
+        memset(buffer, 0, 256);
+
+        //Open file
+        fp = fopen(filename, "rb");
+
+        if (fp == NULL) {
+            printf("file not found\n", filename);
+            write(newsockfd, "server: file not found", 23);
+        }
+        else {
+            write(newsockfd, "server: sending file...", 24);
+            boolFileFound = 1;
+        }
     }
-
-//printf("Filename recieved from client: %s\n",buffer);
-
-    //Copy filename from buffer
-    filename = malloc(strlen(buffer) + 1);
-    strcpy(filename, buffer);
-    memset(buffer, 0, 256);
-
-    //Open file
-    FILE * fp = fopen(filename, "rb");
-
-    if (fp == NULL) {
-        error("ERROR file not found");
-
-     }
 
     while (1) {
         //Read 256 bytes

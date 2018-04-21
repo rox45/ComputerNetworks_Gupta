@@ -9,14 +9,12 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-void error(const char *msg)
-{
+void error(const char *msg) {
     perror(msg);
     exit(0);
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     int sockfd; //File descriptor in file descriptor table, stores value returned by socket system call
     int portno; //Port number for server to accept connections
     int n;  //return value for read and write calls
@@ -26,6 +24,9 @@ int main(int argc, char *argv[])
     int bytesReceived = 0;
 
     char buffer[256];
+    char* filename;
+
+    FILE *fp;
 
     if (argc < 3) {
        fprintf(stderr,"usage %s hostname port\n", argv[0]);
@@ -65,17 +66,28 @@ int main(int argc, char *argv[])
         error("ERROR connecting");
     }
     
-
-    printf("Enter file name: ");
-    
     memset(buffer, 0, 256);  //Clear/initialize buffer to 0
-    fgets(buffer, 255, stdin);    //Write input to buffer
 
-    n = write(sockfd, buffer, strlen(buffer));  //Write file name to server
+    //Keep prompting user to enter a valid filename
+    while(strcmp(buffer, "server: sending file...") != 0) {
+
+        printf("Enter file name: ");
+    
+        memset(buffer, 0, 256);
+        fgets(buffer, 255, stdin);    //Write input to buffer
+
+        n = write(sockfd, buffer, strlen(buffer));  //Write file name to server
+
+        filename = malloc(strlen(buffer) + 1);
+        strcpy(filename, buffer);
+        memset(buffer, 0, 256);
+
+        read(sockfd, buffer, 256);  //read server response
+        printf("\n%s\n", buffer);
+    }
 
     //Create file
-    FILE *fp;
-    fp = fopen(buffer, "ab");
+    fp = fopen(filename, "ab");
     if (NULL == fp) {
         fprintf(stderr, "Error opening file");
         exit(1);
