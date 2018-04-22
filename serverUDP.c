@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
     int sockfd; //File descriptor in file descriptor table, stores value returned by socket system call
     int nBytes; //Number of bytes read
     struct sockaddr_in addr_con;    //struct containing server address
-    int addrlen = sizeof(addr_con); //Stores the length of the address
+    socklen_t addrlen = sizeof(addr_con); //Stores the length of the address
     int portno; //Port number for server to accept connections
 
     char buffer[256];
