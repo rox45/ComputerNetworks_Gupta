@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
     }
 
     //Create socket
-    sockfd =  socket(AF_INET, SOCK_STREAM, 0); ///AF_INET: IPv4 family; SOCK_STREAM: stream socket(TCP); 0: system default
+    sockfd =  socket(AF_INET, SOCK_STREAM, 0); //AF_INET: IPv4 family; SOCK_STREAM: stream socket(TCP); 0: system default
     
     if (sockfd < 0) {
        error("ERROR opening socket");
@@ -109,6 +109,8 @@ int main(int argc, char *argv[]) {
 
     //Keep reading until client supplies a valid filename
     while(1) {
+        printf("Waiting for file name...\n");
+
         //Clear/initialize buffer to 0
         memset(buffer, 0, 256);
 
@@ -126,7 +128,7 @@ int main(int argc, char *argv[]) {
         //Open file
         fp = fopen(filename, "rb");
 
-        //File not found, loop
+        //If file not found, loop
         if (fp == NULL) {
             printf("file \"%s\" is not found\n", filename);
             write(newsockfd, "server: file not found", 23);
@@ -135,6 +137,7 @@ int main(int argc, char *argv[]) {
         else {
             write(newsockfd, "server: sending file...", 24);
 
+            //Get checksum of file and send it to client
             char command[256] = "openssl md5 ";
             strncat(command, filename, strlen(filename));
             checksum = exec(command); //Get the checksum by bash shell

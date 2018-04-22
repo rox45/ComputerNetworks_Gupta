@@ -10,7 +10,6 @@
  
 #define IP_ADDRESS "127.0.0.1" // localhost
 #define PORT_NO 15050
-#define NET_BUF_SIZE 256
 #define cipherKey 'S'
 #define sendrecvflag 0
  
@@ -19,13 +18,13 @@ void error(const char *msg) {
     exit(1);
 }
 
-// function for decryption
+//Function for decryption
 char Cipher(char ch)
 {
     return ch ^ cipherKey;
 }
  
-// function to receive file
+//Function to receive file
 int recvFile(FILE* fp, char* buffer, int s)
 {
     char ch;
@@ -82,7 +81,7 @@ int main() {
     addr_con.sin_port = htons(PORT_NO);
     addr_con.sin_addr.s_addr = inet_addr(IP_ADDRESS);
 
-    char buffer[NET_BUF_SIZE];
+    char buffer[256];
     char* filename;
 
     FILE* fp;
@@ -96,41 +95,41 @@ int main() {
     else
         printf("\nfile descriptor %d received\n", sockfd);
 
-    
-        memset(buffer, 0, NET_BUF_SIZE);
+
+        memset(buffer, 0, 256);
 
     //Keep reading until client supplies a valid filename
-    while(strcmp(buffer, "server: sending file...") != 0) {
+    while(strcmp(buffer, "Message from server: Sending file...") != 0) {
         printf("\nPlease enter file name to receive:\n");
         scanf("%s", buffer);
 
-        sendto(sockfd, buffer, NET_BUF_SIZE, sendrecvflag, (struct sockaddr*)&addr_con, addrlen);
+        sendto(sockfd, buffer, 256, sendrecvflag, (struct sockaddr*)&addr_con, addrlen);
 
         filename = malloc(strlen(buffer) + 1);
         strcpy(filename, buffer);
-        memset(buffer, 0, NET_BUF_SIZE);
+        memset(buffer, 0, 256);
 
-        recvfrom(sockfd, buffer, NET_BUF_SIZE, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen);
+        recvfrom(sockfd, buffer, 256, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen);
     }
 
     remove(filename);
     fp = fopen(filename, "ab");
 
     //Read server file checksum
-    memset(buffer, 0, NET_BUF_SIZE);
-    recvfrom(sockfd, buffer, NET_BUF_SIZE, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen);
+    memset(buffer, 0, 256);
+    recvfrom(sockfd, buffer, 256, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen);
     serverChecksum = malloc(strlen(buffer) + 1);
     strcpy(serverChecksum, buffer);  
-    memset(buffer, 0, NET_BUF_SIZE);
+    memset(buffer, 0, 256);
 
     while (1) {
         //Receive
-        memset(buffer, 0, NET_BUF_SIZE);
+        memset(buffer, 0, 256);
 
-        nBytes = recvfrom(sockfd, buffer, NET_BUF_SIZE, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen);
+        nBytes = recvfrom(sockfd, buffer, 256, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen);
 
         //Process
-        if (recvFile(fp, buffer, NET_BUF_SIZE)) {
+        if (recvFile(fp, buffer, 256)) {
             break;
         }
     }
