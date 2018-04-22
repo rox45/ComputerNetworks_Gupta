@@ -135,6 +135,7 @@ int main(int argc, char *argv[]) {
     memset(buffer, 0, 256);
 
     //Create file
+    remove(filename);
     fp = fopen(filename, "ab");
     if (NULL == fp) {
         fprintf(stderr, "Error opening file");
