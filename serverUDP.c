@@ -11,11 +11,16 @@
  
 #define IP_PROTOCOL 0
 #define PORT_NO 15050
-#define NET_BUF_SIZE 32
+#define NET_BUF_SIZE 256
 #define cipherKey 'S'
 #define sendrecvflag 0
 #define nofile "File Not Found!"
  
+void error(const char *msg) {
+    perror(msg);
+    exit(1);
+}
+
 // funtion to clear buffer
 void clearBuf(char* buffer)
 {
@@ -54,6 +59,38 @@ int sendFile(FILE* fp, char* buf, int s)
     return 0;
 }
  
+//Run system command and return output, from https://stackoverflow.com/questions/1583234/c-system-function-how-to-collect-the-output-of-the-issued-command
+char* exec(char* command) {
+    FILE* fp;
+    char* line = NULL;
+    // Following initialization is equivalent to char* result = ""; and just
+    // initializes result to an empty string, only it works with
+    // -Werror=write-strings and is so much less clear.
+    char* result = (char*) calloc(1, 1);
+    size_t len = 0;
+
+    fflush(NULL);
+    fp = popen(command, "r");
+    if (fp == NULL) {
+        error("Cannot execute command");
+    }
+
+    while(getline(&line, &len, fp) != -1) {
+        // +1 below to allow room for null terminator.
+        result = (char*) realloc(result, strlen(result) + strlen(line) + 1);
+        // +1 below so we copy the final null terminator.
+        strncpy(result + strlen(result), line, strlen(line) + 1);
+        free(line);
+        line = NULL;
+    }
+
+    fflush(fp);
+    if (pclose(fp) != 0) {
+        perror("Cannot close stream.\n");
+    }
+    return result;
+}
+
 // driver code
 int main()
 {
@@ -63,8 +100,12 @@ int main()
     addr_con.sin_family = AF_INET;
     addr_con.sin_port = htons(PORT_NO);
     addr_con.sin_addr.s_addr = INADDR_ANY;
+
     char buffer[NET_BUF_SIZE];
+    char* filename;
+
     FILE* fp;
+    char* checksum;
  
     // socket()
     sockfd = socket(AF_INET, SOCK_DGRAM, IP_PROTOCOL);
@@ -89,14 +130,26 @@ int main()
         nBytes = recvfrom(sockfd, buffer,
                           NET_BUF_SIZE, sendrecvflag,
                           (struct sockaddr*)&addr_con, &addrlen);
- 
-        fp = fopen(buffer, "r");
+
+        filename = malloc(strlen(buffer) + 1);
+        strcpy(filename, buffer);
+        clearBuf(buffer);
+
+        fp = fopen(filename, "r");
         printf("\nFile Name Received: %s\n", buffer);
         if (fp == NULL)
             printf("\nFile open failed!\n");
         else
             printf("\nFile Successfully opened!\n");
  
+        //Get checksum and send it to client
+        char command[256] = "openssl md5 ";
+        strncat(command, filename, strlen(filename));
+        checksum = exec(command); //Get the checksum by bash shell
+
+        printf(checksum);
+        sendto(sockfd, checksum, strlen(checksum), sendrecvflag, (struct sockaddr*)&addr_con, addrlen);
+
         while (1) {
  
             // process
@@ -115,7 +168,11 @@ int main()
         }
         if (fp != NULL)
             fclose(fp);
+
+        break;
     }
+
+    free(filename);
     return 0;
 }
 
