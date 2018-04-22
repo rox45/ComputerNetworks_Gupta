@@ -21,35 +21,27 @@ void error(const char *msg) {
     exit(1);
 }
 
-// funtion to clear buffer
-void clearBuf(char* buffer)
-{
-    int i;
-    for (i = 0; i < NET_BUF_SIZE; i++)
-        buffer[i] = '\0';
-}
- 
-// funtion to encrypt
-char Cipher(char ch)
-{
+//Function to encrypt
+char Cipher(char ch) {
     return ch ^ cipherKey;
 }
  
-// funtion sending file
-int sendFile(FILE* fp, char* buf, int s)
-{
-    int i, len;
+//Function sending file
+int sendFile(FILE* fp, char* buf, int s) {
+    int len;
+
     if (fp == NULL) {
         strcpy(buf, nofile);
         len = strlen(nofile);
         buf[len] = EOF;
-        for (i = 0; i <= len; i++)
+        for (int i = 0; i <= len; i++)
             buf[i] = Cipher(buf[i]);
         return 1;
     }
  
     char ch, ch2;
-    for (i = 0; i < s; i++) {
+
+    for (int i = 0; i < s; i++) {
         ch = fgetc(fp);
         ch2 = Cipher(ch);
         buf[i] = ch2;
@@ -91,9 +83,7 @@ char* exec(char* command) {
     return result;
 }
 
-// driver code
-int main()
-{
+int main() {
     int sockfd, nBytes;
     struct sockaddr_in addr_con;
     int addrlen = sizeof(addr_con);
@@ -125,7 +115,7 @@ int main()
         printf("\nWaiting for file name...\n");
  
         // receive file name
-        clearBuf(buffer);
+        memset(buffer, 0, NET_BUF_SIZE);
  
         nBytes = recvfrom(sockfd, buffer,
                           NET_BUF_SIZE, sendrecvflag,
@@ -133,7 +123,7 @@ int main()
 
         filename = malloc(strlen(buffer) + 1);
         strcpy(filename, buffer);
-        clearBuf(buffer);
+        memset(buffer, 0, NET_BUF_SIZE);
 
         fp = fopen(filename, "r");
         printf("\nFile Name Received: %s\n", buffer);
@@ -164,7 +154,8 @@ int main()
             sendto(sockfd, buffer, NET_BUF_SIZE,
                    sendrecvflag,
                 (struct sockaddr*)&addr_con, addrlen);
-            clearBuf(buffer);
+            
+            memset(buffer, 0, NET_BUF_SIZE);
         }
         if (fp != NULL)
             fclose(fp);

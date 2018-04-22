@@ -20,14 +20,6 @@ void error(const char *msg) {
     exit(1);
 }
 
-// funtion to clear buffer
-void clearBuf(char* buffer)
-{
-    int i;
-    for (i = 0; i < NET_BUF_SIZE; i++)
-        buffer[i] = '\0';
-}
- 
 // function for decryption
 char Cipher(char ch)
 {
@@ -85,8 +77,7 @@ char* exec(char* command) {
 }
 
 // driver code
-int main()
-{
+int main() {
     int sockfd, nBytes;
     struct sockaddr_in addr_con;
     int addrlen = sizeof(addr_con);
@@ -119,23 +110,23 @@ int main()
 
         filename = malloc(strlen(buffer) + 1);
         strcpy(filename, buffer);
-        clearBuf(buffer);
+        memset(buffer, 0, NET_BUF_SIZE);
 
         remove(filename);
         fp = fopen(filename, "ab");
  
         //read server file checksum
-        clearBuf(buffer);
+        memset(buffer, 0, NET_BUF_SIZE);
         recvfrom(sockfd, buffer, NET_BUF_SIZE, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen);
         serverChecksum = malloc(strlen(buffer) + 1);
-        strcpy(serverChecksum, buffer);
-        clearBuf(buffer);
+        strcpy(serverChecksum, buffer);  
+        memset(buffer, 0, NET_BUF_SIZE);
 
         printf("\n---------Data Received---------\n");
         
         while (1) {
             // receive
-            clearBuf(buffer);
+            memset(buffer, 0, NET_BUF_SIZE);
 
             nBytes = recvfrom(sockfd, buffer, NET_BUF_SIZE,
                               sendrecvflag, (struct sockaddr*)&addr_con,
@@ -160,8 +151,8 @@ int main()
         }
 
         fclose(fp);
-
         close(sockfd);
+
         free(serverChecksum);
         free(filename);
 
