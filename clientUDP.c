@@ -16,11 +16,11 @@
 #define sendrecvflag 0
  
 // funtion to clear buffer
-void clearBuf(char* b)
+void clearBuf(char* buffer)
 {
     int i;
     for (i = 0; i < NET_BUF_SIZE; i++)
-        b[i] = '\0';
+        buffer[i] = '\0';
 }
  
 // function for decryption
@@ -30,17 +30,19 @@ char Cipher(char ch)
 }
  
 // function to receive file
-int recvFile(char* buf, int s)
+int recvFile(FILE* fp, char* buffer, int s)
 {
     int i;
     char ch;
     for (i = 0; i < s; i++) {
-        ch = buf[i];
+        ch = buffer[i];
         ch = Cipher(ch);
         if (ch == EOF)
             return 1;
-        else
-            printf("%c", ch);
+        else {
+            fprintf(fp, "%c", ch);
+          }
+
     }
     return 0;
 }
@@ -54,12 +56,11 @@ int main()
     addr_con.sin_family = AF_INET;
     addr_con.sin_port = htons(PORT_NO);
     addr_con.sin_addr.s_addr = inet_addr(IP_ADDRESS);
-    char net_buf[NET_BUF_SIZE];
+    char buffer[NET_BUF_SIZE];
     FILE* fp;
  
     // socket()
-    sockfd = socket(AF_INET, SOCK_DGRAM,
-                    IP_PROTOCOL);
+    sockfd = socket(AF_INET, SOCK_DGRAM, IP_PROTOCOL);
  
     if (sockfd < 0)
         printf("\nfile descriptor not received!!\n");
@@ -68,27 +69,33 @@ int main()
  
     while (1) {
         printf("\nPlease enter file name to receive:\n");
-        scanf("%s", net_buf);
-        sendto(sockfd, net_buf, NET_BUF_SIZE,
+        scanf("%s", buffer);
+        sendto(sockfd, buffer, NET_BUF_SIZE,
                sendrecvflag, (struct sockaddr*)&addr_con,
                addrlen);
+
+        fp = fopen(buffer, "ab");
  
         printf("\n---------Data Received---------\n");
- 
+        
         while (1) {
             // receive
-            clearBuf(net_buf);
-            nBytes = recvfrom(sockfd, net_buf, NET_BUF_SIZE,
+            clearBuf(buffer);
+
+            nBytes = recvfrom(sockfd, buffer, NET_BUF_SIZE,
                               sendrecvflag, (struct sockaddr*)&addr_con,
                               &addrlen);
- 
+
             // process
-            if (recvFile(net_buf, NET_BUF_SIZE)) {
+            if (recvFile(fp, buffer, NET_BUF_SIZE)) {
                 break;
             }
         }
         printf("\n-------------------------------\n");
+
+        fclose(fp);
+
+        close(sockfd);
     }
     return 0;
 }
-

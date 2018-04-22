@@ -1,4 +1,5 @@
 // server code for UDP socket programming
+//https://www.geeksforgeeks.org/c-program-for-file-transfer-using-udp/
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -16,11 +17,11 @@
 #define nofile "File Not Found!"
  
 // funtion to clear buffer
-void clearBuf(char* b)
+void clearBuf(char* buffer)
 {
     int i;
     for (i = 0; i < NET_BUF_SIZE; i++)
-        b[i] = '\0';
+        buffer[i] = '\0';
 }
  
 // funtion to encrypt
@@ -62,7 +63,7 @@ int main()
     addr_con.sin_family = AF_INET;
     addr_con.sin_port = htons(PORT_NO);
     addr_con.sin_addr.s_addr = INADDR_ANY;
-    char net_buf[NET_BUF_SIZE];
+    char buffer[NET_BUF_SIZE];
     FILE* fp;
  
     // socket()
@@ -83,14 +84,14 @@ int main()
         printf("\nWaiting for file name...\n");
  
         // receive file name
-        clearBuf(net_buf);
+        clearBuf(buffer);
  
-        nBytes = recvfrom(sockfd, net_buf,
+        nBytes = recvfrom(sockfd, buffer,
                           NET_BUF_SIZE, sendrecvflag,
                           (struct sockaddr*)&addr_con, &addrlen);
  
-        fp = fopen(net_buf, "r");
-        printf("\nFile Name Received: %s\n", net_buf);
+        fp = fopen(buffer, "r");
+        printf("\nFile Name Received: %s\n", buffer);
         if (fp == NULL)
             printf("\nFile open failed!\n");
         else
@@ -99,18 +100,18 @@ int main()
         while (1) {
  
             // process
-            if (sendFile(fp, net_buf, NET_BUF_SIZE)) {
-                sendto(sockfd, net_buf, NET_BUF_SIZE,
+            if (sendFile(fp, buffer, NET_BUF_SIZE)) {
+                sendto(sockfd, buffer, NET_BUF_SIZE,
                        sendrecvflag, 
                     (struct sockaddr*)&addr_con, addrlen);
                 break;
             }
  
             // send
-            sendto(sockfd, net_buf, NET_BUF_SIZE,
+            sendto(sockfd, buffer, NET_BUF_SIZE,
                    sendrecvflag,
                 (struct sockaddr*)&addr_con, addrlen);
-            clearBuf(net_buf);
+            clearBuf(buffer);
         }
         if (fp != NULL)
             fclose(fp);
