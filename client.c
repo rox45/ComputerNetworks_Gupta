@@ -175,6 +175,11 @@ int main(int argc, char *argv[]) {
     printf(localChecksum);
     printf(serverChecksum);
 
+    //Display message of file corruption of checksums do not match
+    if (strcmp(localChecksum, serverChecksum) != 0) {
+        printf("File is corrupted\n");
+    }
+
     free(filename);
     free(serverChecksum);
 
