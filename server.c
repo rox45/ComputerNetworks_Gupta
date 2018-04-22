@@ -9,9 +9,42 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+
 void error(const char *msg) {
     perror(msg);
     exit(1);
+}
+
+//Run system command and return output, from https://stackoverflow.com/questions/1583234/c-system-function-how-to-collect-the-output-of-the-issued-command
+char* exec(char* command) {
+    FILE* fp;
+    char* line = NULL;
+    // Following initialization is equivalent to char* result = ""; and just
+    // initializes result to an empty string, only it works with
+    // -Werror=write-strings and is so much less clear.
+    char* result = (char*) calloc(1, 1);
+    size_t len = 0;
+
+    fflush(NULL);
+    fp = popen(command, "r");
+    if (fp == NULL) {
+        error("Cannot execute command");
+    }
+
+    while(getline(&line, &len, fp) != -1) {
+        // +1 below to allow room for null terminator.
+        result = (char*) realloc(result, strlen(result) + strlen(line) + 1);
+        // +1 below so we copy the final null terminator.
+        strncpy(result + strlen(result), line, strlen(line) + 1);
+        free(line);
+        line = NULL;
+    }
+
+    fflush(fp);
+    if (pclose(fp) != 0) {
+        perror("Cannot close stream.\n");
+    }
+    return result;
 }
 
 int main(int argc, char *argv[]) {
@@ -25,6 +58,7 @@ int main(int argc, char *argv[]) {
     char* filename;
     
     FILE* fp;
+    char* checksum;
 
     int boolFileFound = 0;
 
@@ -75,10 +109,6 @@ int main(int argc, char *argv[]) {
 
     printf("server: got connection from %s port %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 
-
-    //This send() function sends the 13 bytes of the string to the new socket
-    //send(newsockfd, "ack!\n", 13, 0);
-
     while(!boolFileFound) {
         //Clear/initialize buffer to 0
         memset(buffer, 0, 256);
@@ -97,13 +127,21 @@ int main(int argc, char *argv[]) {
         //Open file
         fp = fopen(filename, "rb");
 
+        //File not found, loop
         if (fp == NULL) {
             printf("file \"%s\" is not found\n", filename);
             write(newsockfd, "server: file not found", 23);
         }
+        //File found
         else {
             write(newsockfd, "server: sending file...", 24);
             boolFileFound = 1;
+
+            char command[256] = "openssl md5 ";
+            strncat(command, filename, strlen(filename));
+            checksum = exec(command); //Get the checksum by bash shell
+
+            printf(checksum);
         }
     }
 
@@ -130,7 +168,7 @@ int main(int argc, char *argv[]) {
         }
      }
 
-    memset(buffer, 0, 256);
+    free(filename);
 
     fclose(fp);
     close(newsockfd);

@@ -14,6 +14,38 @@ void error(const char *msg) {
     exit(0);
 }
 
+//Run system command and return output, from https://stackoverflow.com/questions/1583234/c-system-function-how-to-collect-the-output-of-the-issued-command
+char* exec(char* command) {
+    FILE* fp;
+    char* line = NULL;
+    // Following initialization is equivalent to char* result = ""; and just
+    // initializes result to an empty string, only it works with
+    // -Werror=write-strings and is so much less clear.
+    char* result = (char*) calloc(1, 1);
+    size_t len = 0;
+
+    fflush(NULL);
+    fp = popen(command, "r");
+    if (fp == NULL) {
+        error("Cannot execute command");
+    }
+
+    while(getline(&line, &len, fp) != -1) {
+        // +1 below to allow room for null terminator.
+        result = (char*) realloc(result, strlen(result) + strlen(line) + 1);
+        // +1 below so we copy the final null terminator.
+        strncpy(result + strlen(result), line, strlen(line) + 1);
+        free(line);
+        line = NULL;
+    }
+
+    fflush(fp);
+    if (pclose(fp) != 0) {
+        perror("Cannot close stream.\n");
+    }
+    return result;
+}
+
 int main(int argc, char *argv[]) {
     int sockfd; //File descriptor in file descriptor table, stores value returned by socket system call
     int portno; //Port number for server to accept connections
@@ -26,7 +58,9 @@ int main(int argc, char *argv[]) {
     char buffer[256];
     char* filename;
 
-    FILE *fp;
+    FILE *fp; 
+    char* checksum;
+
 
     if (argc < 3) {
        fprintf(stderr,"usage %s hostname port\n", argv[0]);
@@ -123,6 +157,15 @@ int main(int argc, char *argv[]) {
     printf("%s\n", buffer);
 
     fclose(fp);
+
+    char command[256] = "openssl md5 ";
+    strncat(command, filename, strlen(filename));
+    checksum = exec(command); //Get the checksum by bash shell
+
+    printf(checksum);
+
+    free(filename);
+
     close(sockfd);
     return 0;
 }
