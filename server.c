@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
 
         //If file not found, loop
         if (fp == NULL) {
-            printf("file \"%s\" is not found\n", filename);
+            printf("File \"%s\" was not found\n", filename);
             write(newsockfd, "Message from server: File not found", 36);
         }
         //File found
