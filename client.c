@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
 
     //Recieve data
     while ((bytesReceived = read(sockfd, buffer, 256)) > 0) {
-         printf("Bytes received %d\n", 1, bytesReceived);
+         printf("Bytes received %i\n", bytesReceived);
          fwrite(buffer, 1, bytesReceived, fp);
     }
 
