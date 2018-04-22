@@ -29,17 +29,16 @@ char Cipher(char ch)
 // function to receive file
 int recvFile(FILE* fp, char* buffer, int s)
 {
-    int i;
     char ch;
-    for (i = 0; i < s; i++) {
+
+    for (int i = 0; i < s; i++) {
         ch = buffer[i];
         ch = Cipher(ch);
         if (ch == EOF)
             return 1;
         else {
             fprintf(fp, "%c", ch);
-          }
-
+        }
     }
     return 0;
 }
@@ -103,9 +102,7 @@ int main() {
     while (1) {
         printf("\nPlease enter file name to receive:\n");
         scanf("%s", buffer);
-        sendto(sockfd, buffer, NET_BUF_SIZE,
-               sendrecvflag, (struct sockaddr*)&addr_con,
-               addrlen);
+        sendto(sockfd, buffer, NET_BUF_SIZE, sendrecvflag, (struct sockaddr*)&addr_con, addrlen);
 
 
         filename = malloc(strlen(buffer) + 1);
@@ -128,9 +125,7 @@ int main() {
             // receive
             memset(buffer, 0, NET_BUF_SIZE);
 
-            nBytes = recvfrom(sockfd, buffer, NET_BUF_SIZE,
-                              sendrecvflag, (struct sockaddr*)&addr_con,
-                              &addrlen);
+            nBytes = recvfrom(sockfd, buffer, NET_BUF_SIZE, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen);
 
             // process
             if (recvFile(fp, buffer, NET_BUF_SIZE)) {
