@@ -1,3 +1,5 @@
 
 serverBinaries/server
 clientBinaries/client
+serverBinaries/serverUDP
+clientBinaries/clientUDP
