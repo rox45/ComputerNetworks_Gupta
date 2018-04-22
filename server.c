@@ -60,8 +60,6 @@ int main(int argc, char *argv[]) {
     FILE* fp;
     char* checksum;
 
-    int boolFileFound = 0;
-
     if (argc < 2) {
         fprintf(stderr, "ERROR no port provided\n");
         exit(1);
@@ -109,7 +107,8 @@ int main(int argc, char *argv[]) {
 
     printf("server: got connection from %s port %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 
-    while(!boolFileFound) {
+    //Keep reading until client supplies a valid filename
+    while(1) {
         //Clear/initialize buffer to 0
         memset(buffer, 0, 256);
 
@@ -135,13 +134,16 @@ int main(int argc, char *argv[]) {
         //File found
         else {
             write(newsockfd, "server: sending file...", 24);
-            boolFileFound = 1;
 
             char command[256] = "openssl md5 ";
             strncat(command, filename, strlen(filename));
             checksum = exec(command); //Get the checksum by bash shell
 
             printf(checksum);
+
+            write(newsockfd, checksum, strlen(checksum) + 1);    //Write checksum to client
+
+            break;
         }
     }
 

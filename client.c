@@ -59,7 +59,8 @@ int main(int argc, char *argv[]) {
     char* filename;
 
     FILE *fp; 
-    char* checksum;
+    char* localChecksum;
+    char* serverChecksum;
 
 
     if (argc < 3) {
@@ -102,7 +103,7 @@ int main(int argc, char *argv[]) {
     
     memset(buffer, 0, 256);  //Clear/initialize buffer to 0
 
-    //Keep prompting user to enter a valid filename
+    //Keep prompting user until a valid filename is given
     while(strcmp(buffer, "server: sending file...") != 0) {
 
         printf("Enter file name: ");
@@ -124,6 +125,14 @@ int main(int argc, char *argv[]) {
         read(sockfd, buffer, 256);  //read server response
         printf("\n%s\n", buffer);
     }
+
+    //read server file checksum
+    memset(buffer, 0, 256);
+
+    read(sockfd, buffer, 256);
+    serverChecksum = malloc(strlen(buffer) + 1);
+    strcpy(serverChecksum, buffer);
+    memset(buffer, 0, 256);
 
     //Create file
     fp = fopen(filename, "ab");
@@ -160,11 +169,13 @@ int main(int argc, char *argv[]) {
 
     char command[256] = "openssl md5 ";
     strncat(command, filename, strlen(filename));
-    checksum = exec(command); //Get the checksum by bash shell
+    localChecksum = exec(command); //Get the checksum by bash shell
 
-    printf(checksum);
+    printf(localChecksum);
+    printf(serverChecksum);
 
     free(filename);
+    free(serverChecksum);
 
     close(sockfd);
     return 0;
