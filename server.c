@@ -28,7 +28,7 @@ char* exec(char* command) {
     fflush(NULL);
     fp = popen(command, "r");
     if (fp == NULL) {
-        error("Cannot execute command");
+        error("ERROR cannot execute command");
     }
 
     while(getline(&line, &len, fp) != -1) {
@@ -42,7 +42,7 @@ char* exec(char* command) {
 
     fflush(fp);
     if (pclose(fp) != 0) {
-        perror("Cannot close stream.\n");
+        perror("ERROR cannot close stream\n");
     }
     return result;
 }
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     int portno;    //Port number for server to accept connections
     struct sockaddr_in serv_addr, cli_addr;    //struct containing server address
     int n; //return value for read and write calls
-    socklen_t clilen;
+    socklen_t clilen;   //Stores the length of the client address
 
     char buffer[256];
     char* filename;
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    //Create socket
+    //Create socket, socket(family, type, protocol)
     sockfd =  socket(AF_INET, SOCK_STREAM, 0); //AF_INET: IPv4 family; SOCK_STREAM: stream socket(TCP); 0: system default
     
     if (sockfd < 0) {
@@ -107,6 +107,7 @@ int main(int argc, char *argv[]) {
 
     printf("server: got connection from %s port %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 
+
     //Keep reading until client supplies a valid filename
     while(1) {
         printf("Waiting for file name...\n");
@@ -114,37 +115,37 @@ int main(int argc, char *argv[]) {
         //Clear/initialize buffer to 0
         memset(buffer, 0, 256);
 
-        n = read(newsockfd, buffer, 255);
+        n = read(newsockfd, buffer, 256);
 
         if (n < 0) {
             error("ERROR reading from socket");
         }
 
-        //Copy filename from buffer
+        //Receive the filename
         filename = malloc(strlen(buffer) + 1);
         strcpy(filename, buffer);
         memset(buffer, 0, 256);
 
-        //Open file
-        fp = fopen(filename, "rb");
+        fp = fopen(filename, "rb");        
+        printf("File name received: %s\n", filename);
+
 
         //If file not found, loop
         if (fp == NULL) {
             printf("file \"%s\" is not found\n", filename);
-            write(newsockfd, "server: file not found", 23);
+            write(newsockfd, "Message from server: File not found", 36);
         }
         //File found
         else {
-            write(newsockfd, "server: sending file...", 24);
+            write(newsockfd, "Message from server: Sending file...", 37);
 
             //Get checksum of file and send it to client
             char command[256] = "openssl md5 ";
             strncat(command, filename, strlen(filename));
             checksum = exec(command); //Get the checksum by bash shell
 
-            printf(checksum);
-
-            write(newsockfd, checksum, strlen(checksum) + 1);    //Write checksum to client
+            printf("File %s\n", checksum);
+            write(newsockfd, checksum, strlen(checksum) + 1);
 
             break;
         }

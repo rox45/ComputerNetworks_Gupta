@@ -51,7 +51,7 @@ char* exec(char* command) {
     fflush(NULL);
     fp = popen(command, "r");
     if (fp == NULL) {
-        error("Cannot execute command");
+        error("ERROR cannot execute command");
     }
 
     while(getline(&line, &len, fp) != -1) {
@@ -65,7 +65,7 @@ char* exec(char* command) {
 
     fflush(fp);
     if (pclose(fp) != 0) {
-        perror("Cannot close stream.\n");
+        perror("ERROR cannot close stream\n");
     }
     return result;
 }
@@ -76,8 +76,14 @@ int main() {
     struct sockaddr_in addr_con;    //struct containing server address
     int addrlen = sizeof(addr_con); //Stores the length of the address
 
+    //Setup the host_addr structure for use in bind call
+    //Server byte order
     addr_con.sin_family = AF_INET;
+
+    //Convert short integer value for port must be converted into network byte order
     addr_con.sin_port = htons(PORT_NO);
+
+    //Fill with current host's IP address
     addr_con.sin_addr.s_addr = INADDR_ANY;
 
     char buffer[256];
@@ -86,7 +92,7 @@ int main() {
     FILE* fp;
     char* checksum;
  
-    //Create socket
+    //Create socket, socket(family, type, protocol)
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);    //AF_INET: IPv4 family; SOCK_DGRAM: datagram socket(UDP); 0: system default
  
     if (sockfd < 0) {
@@ -128,8 +134,8 @@ int main() {
             strncat(command, filename, strlen(filename));
             checksum = exec(command); //Get the checksum by bash shell
 
-            printf(checksum);
-            sendto(sockfd, checksum, strlen(checksum), sendrecvflag, (struct sockaddr*)&addr_con, addrlen);
+            printf("File %s\n", checksum);
+            sendto(sockfd, checksum, strlen(checksum) + 1, sendrecvflag, (struct sockaddr*)&addr_con, addrlen);
     
             break;
         }
@@ -140,9 +146,11 @@ int main() {
     while (1) {
 
         if (sendFile(fp, buffer, 256)) {
+
             sendto(sockfd, buffer, 256,
-               sendrecvflag, 
-               (struct sockaddr*)&addr_con, addrlen);
+                sendrecvflag, 
+                (struct sockaddr*)&addr_con, addrlen);
+
             break;
         }
 

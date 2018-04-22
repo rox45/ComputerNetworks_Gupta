@@ -19,14 +19,12 @@ void error(const char *msg) {
 }
 
 //Function for decryption
-char Cipher(char ch)
-{
+char Cipher(char ch) {
     return ch ^ cipherKey;
 }
  
 //Function to receive file
-int recvFile(FILE* fp, char* buffer, int s)
-{
+int recvFile(FILE* fp, char* buffer, int s) {
     char ch;
 
     for (int i = 0; i < s; i++) {
@@ -54,7 +52,7 @@ char* exec(char* command) {
     fflush(NULL);
     fp = popen(command, "r");
     if (fp == NULL) {
-        error("Cannot execute command");
+        error("ERROR cannot execute command");
     }
 
     while(getline(&line, &len, fp) != -1) {
@@ -68,7 +66,7 @@ char* exec(char* command) {
 
     fflush(fp);
     if (pclose(fp) != 0) {
-        perror("Cannot close stream.\n");
+        perror("ERROR cannot close stream\n");
     }
     return result;
 }
@@ -90,8 +88,8 @@ int main() {
     char* localChecksum;
     char* serverChecksum;
  
-    //Create socket
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    //Create socket, socket(family, type, protocol)
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);    //AF_INET: IPv4 family; SOCK_DGRAM: datagram socket(UDP); 0: system default
  
     if (sockfd < 0) {
         error("ERROR opening socket");
@@ -140,8 +138,8 @@ int main() {
     strncat(command, filename, strlen(filename));
     localChecksum = exec(command); //Get the checksum by bash shell
 
-    printf("%s\n", serverChecksum);
-    printf("%s\n", localChecksum);
+    printf("Server file %s\n", serverChecksum);
+    printf("Downloaded file %s\n", localChecksum);
 
     //Warn if file checksums do not match
     if (strcmp(serverChecksum, localChecksum) != 0) {

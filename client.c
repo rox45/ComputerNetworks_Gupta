@@ -27,7 +27,7 @@ char* exec(char* command) {
     fflush(NULL);
     fp = popen(command, "r");
     if (fp == NULL) {
-        error("Cannot execute command");
+        error("ERROR cannot execute command");
     }
 
     while(getline(&line, &len, fp) != -1) {
@@ -41,7 +41,7 @@ char* exec(char* command) {
 
     fflush(fp);
     if (pclose(fp) != 0) {
-        perror("Cannot close stream.\n");
+        perror("ERROR cannot close stream\n");
     }
     return result;
 }
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
     memset(buffer, 0, 256);  //Clear/initialize buffer to 0
 
     //Keep prompting user until a valid filename is given
-    while(strcmp(buffer, "server: sending file...") != 0) {
+    while(strcmp(buffer, "Message from server: Sending file...") != 0) {
 
         printf("Enter file name: ");
     
@@ -175,8 +175,8 @@ int main(int argc, char *argv[]) {
     strncat(command, filename, strlen(filename));
     localChecksum = exec(command); //Get the checksum by bash shell
 
-    printf(localChecksum);
-    printf(serverChecksum);
+    printf("Server file %s\n", serverChecksum);
+    printf("Downloaded file %s\n", localChecksum);
 
     ///Warn if file checksums do not match
     if (strcmp(localChecksum, serverChecksum) != 0) {
