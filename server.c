@@ -147,6 +147,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    //Read the file and send 256 bytes at a time
     while (1) {
         //Read 256 bytes
         int nread = fread(buffer, 1, 256, fp);

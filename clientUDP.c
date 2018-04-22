@@ -8,7 +8,6 @@
 #include <sys/types.h>
 #include <unistd.h>
  
-#define IP_PROTOCOL 0
 #define IP_ADDRESS "127.0.0.1" // localhost
 #define PORT_NO 15050
 #define NET_BUF_SIZE 256
@@ -75,7 +74,6 @@ char* exec(char* command) {
     return result;
 }
 
-// driver code
 int main() {
     int sockfd, nBytes;
     struct sockaddr_in addr_con;
@@ -91,51 +89,54 @@ int main() {
     char* localChecksum;
     char* serverChecksum;
  
-    // socket()
-    sockfd = socket(AF_INET, SOCK_DGRAM, IP_PROTOCOL);
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
  
     if (sockfd < 0)
         printf("\nfile descriptor not received!!\n");
     else
         printf("\nfile descriptor %d received\n", sockfd);
- 
-    while (1) {
+
+    
+        memset(buffer, 0, NET_BUF_SIZE);
+
+    //Keep reading until client supplies a valid filename
+    while(strcmp(buffer, "server: sending file...") != 0) {
         printf("\nPlease enter file name to receive:\n");
         scanf("%s", buffer);
-        sendto(sockfd, buffer, NET_BUF_SIZE, sendrecvflag, (struct sockaddr*)&addr_con, addrlen);
 
+        sendto(sockfd, buffer, NET_BUF_SIZE, sendrecvflag, (struct sockaddr*)&addr_con, addrlen);
 
         filename = malloc(strlen(buffer) + 1);
         strcpy(filename, buffer);
         memset(buffer, 0, NET_BUF_SIZE);
 
-        remove(filename);
-        fp = fopen(filename, "ab");
- 
-        //read server file checksum
-        memset(buffer, 0, NET_BUF_SIZE);
         recvfrom(sockfd, buffer, NET_BUF_SIZE, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen);
-        serverChecksum = malloc(strlen(buffer) + 1);
-        strcpy(serverChecksum, buffer);  
+    }
+
+    remove(filename);
+    fp = fopen(filename, "ab");
+
+    //Read server file checksum
+    memset(buffer, 0, NET_BUF_SIZE);
+    recvfrom(sockfd, buffer, NET_BUF_SIZE, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen);
+    serverChecksum = malloc(strlen(buffer) + 1);
+    strcpy(serverChecksum, buffer);  
+    memset(buffer, 0, NET_BUF_SIZE);
+
+    while (1) {
+        //Receive
         memset(buffer, 0, NET_BUF_SIZE);
 
-        printf("\n---------Data Received---------\n");
-        
-        while (1) {
-            // receive
-            memset(buffer, 0, NET_BUF_SIZE);
+        nBytes = recvfrom(sockfd, buffer, NET_BUF_SIZE, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen);
 
-            nBytes = recvfrom(sockfd, buffer, NET_BUF_SIZE, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen);
-
-            // process
-            if (recvFile(fp, buffer, NET_BUF_SIZE)) {
-                break;
-            }
+        //Process
+        if (recvFile(fp, buffer, NET_BUF_SIZE)) {
+            break;
         }
-        printf("\n-------------------------------\n");
+    }
 
-        char command[256] = "openssl md5 ";
-        strncat(command, filename, strlen(filename));
+    char command[256] = "openssl md5 ";
+    strncat(command, filename, strlen(filename));
         localChecksum = exec(command); //Get the checksum by bash shell
 
         printf("%s\n", serverChecksum);
@@ -151,8 +152,5 @@ int main() {
         free(serverChecksum);
         free(filename);
 
-        break;
+        return 0;
     }
-
-    return 0;
-}

@@ -9,7 +9,6 @@
 #include <sys/types.h>
 #include <unistd.h>
  
-#define IP_PROTOCOL 0
 #define PORT_NO 15050
 #define NET_BUF_SIZE 256
 #define cipherKey 'S'
@@ -98,7 +97,7 @@ int main() {
     char* checksum;
  
     // socket()
-    sockfd = socket(AF_INET, SOCK_DGRAM, IP_PROTOCOL);
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
  
     if (sockfd < 0)
         printf("\nfile descriptor not received!!\n");
@@ -111,10 +110,11 @@ int main() {
     else
         printf("\nBinding Failed!\n");
  
+    //Keep reading until client supplies a valid filename
     while (1) {
         printf("\nWaiting for file name...\n");
  
-        // receive file name
+        //Receive file name
         memset(buffer, 0, NET_BUF_SIZE);
  
         nBytes = recvfrom(sockfd, buffer,
@@ -127,42 +127,42 @@ int main() {
 
         fp = fopen(filename, "r");
         printf("\nFile Name Received: %s\n", buffer);
-        if (fp == NULL)
-            printf("\nFile open failed!\n");
-        else
-            printf("\nFile Successfully opened!\n");
- 
-        //Get checksum and send it to client
-        char command[256] = "openssl md5 ";
-        strncat(command, filename, strlen(filename));
-        checksum = exec(command); //Get the checksum by bash shell
 
-        printf(checksum);
-        sendto(sockfd, checksum, strlen(checksum), sendrecvflag, (struct sockaddr*)&addr_con, addrlen);
-
-        while (1) {
- 
-            // process
-            if (sendFile(fp, buffer, NET_BUF_SIZE)) {
-                sendto(sockfd, buffer, NET_BUF_SIZE,
-                       sendrecvflag, 
-                    (struct sockaddr*)&addr_con, addrlen);
-                break;
-            }
- 
-            // send
-            sendto(sockfd, buffer, NET_BUF_SIZE,
-                   sendrecvflag,
-                (struct sockaddr*)&addr_con, addrlen);
-            
-            memset(buffer, 0, NET_BUF_SIZE);
+       //File not found, loop
+        if (fp == NULL) {
+            printf("file \"%s\" is not found\n", filename);
+            sendto(sockfd, "server: file not found", 23, sendrecvflag, (struct sockaddr*)&addr_con, addrlen);
         }
-        if (fp != NULL)
-            fclose(fp);
+        else {
+            printf("\nFile Successfully opened!\n");
+            sendto(sockfd, "server: sending file...", 24, sendrecvflag, (struct sockaddr*)&addr_con, addrlen);
 
-        break;
+            break;
+        }
+    }
+    //Get checksum and send it to client
+    char command[256] = "openssl md5 ";
+    strncat(command, filename, strlen(filename));
+    checksum = exec(command); //Get the checksum by bash shell
+
+    printf(checksum);
+    sendto(sockfd, checksum, strlen(checksum), sendrecvflag, (struct sockaddr*)&addr_con, addrlen);
+    
+    //Read the file and send 256 bytes at a time
+    while (1) {
+
+        if (sendFile(fp, buffer, NET_BUF_SIZE)) {
+            sendto(sockfd, buffer, NET_BUF_SIZE,
+               sendrecvflag, 
+               (struct sockaddr*)&addr_con, addrlen);
+            break;
+        }
+
+        sendto(sockfd, buffer, NET_BUF_SIZE, sendrecvflag, (struct sockaddr*)&addr_con, addrlen);
+        memset(buffer, 0, NET_BUF_SIZE);
     }
 
+    fclose(fp);
     free(filename);
     return 0;
 }
