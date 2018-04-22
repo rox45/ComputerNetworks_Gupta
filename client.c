@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
         printf("\n%s\n", buffer);
     }
 
-    //read server file checksum
+    //Read checksum from server
     memset(buffer, 0, 256);
 
     read(sockfd, buffer, 256);
@@ -135,12 +135,13 @@ int main(int argc, char *argv[]) {
     memset(buffer, 0, 256);
 
     //Create file
-    remove(filename);
+    remove(filename);   //Remove file if already exists
     fp = fopen(filename, "ab");
     if (NULL == fp) {
         fprintf(stderr, "Error opening file");
         exit(1);
     }
+
 
     //Recieve data
     while ((bytesReceived = read(sockfd, buffer, 256)) > 0) {
@@ -168,6 +169,8 @@ int main(int argc, char *argv[]) {
 
     fclose(fp);
 
+
+    //Get checksum of downloaded file
     char command[256] = "openssl md5 ";
     strncat(command, filename, strlen(filename));
     localChecksum = exec(command); //Get the checksum by bash shell
@@ -175,9 +178,9 @@ int main(int argc, char *argv[]) {
     printf(localChecksum);
     printf(serverChecksum);
 
-    //Display message of file corruption of checksums do not match
+    ///Warn if file checksums do not match
     if (strcmp(localChecksum, serverChecksum) != 0) {
-        printf("File is corrupted\n");
+        printf("WARNING: File is corrupted\n");
     }
 
     free(filename);

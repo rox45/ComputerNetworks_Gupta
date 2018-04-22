@@ -74,9 +74,11 @@ char* exec(char* command) {
 }
 
 int main() {
-    int sockfd, nBytes;
-    struct sockaddr_in addr_con;
-    int addrlen = sizeof(addr_con);
+    int sockfd; //File descriptor in file descriptor table, stores value returned by socket system call
+    int nBytes; //Number of bytes read
+    struct sockaddr_in addr_con;   //struct containing server address
+    int addrlen = sizeof(addr_con); //Stores the length of the address
+
     addr_con.sin_family = AF_INET;
     addr_con.sin_port = htons(PORT_NO);
     addr_con.sin_addr.s_addr = inet_addr(IP_ADDRESS);
@@ -88,68 +90,69 @@ int main() {
     char* localChecksum;
     char* serverChecksum;
  
+    //Create socket
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
  
-    if (sockfd < 0)
-        printf("\nfile descriptor not received!!\n");
-    else
-        printf("\nfile descriptor %d received\n", sockfd);
-
-
-        memset(buffer, 0, 256);
+    if (sockfd < 0) {
+        error("ERROR opening socket");
+    }
 
     //Keep reading until client supplies a valid filename
     while(strcmp(buffer, "Message from server: Sending file...") != 0) {
-        printf("\nPlease enter file name to receive:\n");
+
+        memset(buffer, 0, 256);
+
+        printf("Enter file name: ");
         scanf("%s", buffer);
 
-        sendto(sockfd, buffer, 256, sendrecvflag, (struct sockaddr*)&addr_con, addrlen);
+        sendto(sockfd, buffer, 256, sendrecvflag, (struct sockaddr*)&addr_con, addrlen);    //Send filename to server
 
         filename = malloc(strlen(buffer) + 1);
         strcpy(filename, buffer);
         memset(buffer, 0, 256);
 
-        recvfrom(sockfd, buffer, 256, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen);
+        recvfrom(sockfd, buffer, 256, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen); //Get acknoledgement
     }
 
-    remove(filename);
+    remove(filename);   //Remove file if already exists in client
     fp = fopen(filename, "ab");
 
-    //Read server file checksum
+    //Read checksum from server
     memset(buffer, 0, 256);
     recvfrom(sockfd, buffer, 256, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen);
     serverChecksum = malloc(strlen(buffer) + 1);
     strcpy(serverChecksum, buffer);  
     memset(buffer, 0, 256);
 
-    while (1) {
-        //Receive
-        memset(buffer, 0, 256);
 
+    //Receive data
+    while (1) {
+        memset(buffer, 0, 256);
         nBytes = recvfrom(sockfd, buffer, 256, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen);
 
-        //Process
         if (recvFile(fp, buffer, 256)) {
             break;
         }
     }
 
+    //Get checksum of downloaded file
     char command[256] = "openssl md5 ";
     strncat(command, filename, strlen(filename));
-        localChecksum = exec(command); //Get the checksum by bash shell
+    localChecksum = exec(command); //Get the checksum by bash shell
 
-        printf("%s\n", serverChecksum);
-        printf("%s\n", localChecksum);
+    printf("%s\n", serverChecksum);
+    printf("%s\n", localChecksum);
 
-        if (strcmp(serverChecksum, localChecksum) != 0) {
-            printf("File is corrupted\n");
-        }
-
-        fclose(fp);
-        close(sockfd);
-
-        free(serverChecksum);
-        free(filename);
-
-        return 0;
+    //Warn if file checksums do not match
+    if (strcmp(serverChecksum, localChecksum) != 0) {
+        printf("WARNING: File is corrupted\n");
     }
+
+    fclose(fp);
+    close(sockfd);
+
+    free(serverChecksum);
+    free(filename);
+
+    return 0;
+}
