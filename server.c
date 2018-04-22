@@ -66,8 +66,7 @@ int main(int argc, char *argv[]) {
     }
 
     //Create socket, socket(family, type, protocol)
-    sockfd =  socket(AF_INET, SOCK_STREAM, 0); //AF_INET: IPv4 family; SOCK_STREAM: stream socket(TCP); 0: system default
-    
+    sockfd = socket(AF_INET, SOCK_STREAM, 0); //AF_INET: IPv4 family; SOCK_STREAM: stream socket(TCP); 0: system default
     if (sockfd < 0) {
        error("ERROR opening socket");
     }

@@ -1,15 +1,16 @@
-// server code for UDP socket programming
+/* The port number is passed as an argument */
 //https://www.geeksforgeeks.org/c-program-for-file-transfer-using-udp/
+#define _BSD_SOURCE
 #include <arpa/inet.h>
-#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
- 
-#define PORT_NO 15050
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+
 #define cipherKey 'S'
 #define sendrecvflag 0
  
@@ -70,21 +71,12 @@ char* exec(char* command) {
     return result;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
     int sockfd; //File descriptor in file descriptor table, stores value returned by socket system call
     int nBytes; //Number of bytes read
     struct sockaddr_in addr_con;    //struct containing server address
     int addrlen = sizeof(addr_con); //Stores the length of the address
-
-    //Setup the host_addr structure for use in bind call
-    //Server byte order
-    addr_con.sin_family = AF_INET;
-
-    //Convert short integer value for port must be converted into network byte order
-    addr_con.sin_port = htons(PORT_NO);
-
-    //Fill with current host's IP address
-    addr_con.sin_addr.s_addr = INADDR_ANY;
+    int portno; //Port number for server to accept connections
 
     char buffer[256];
     char* filename;
@@ -92,13 +84,29 @@ int main() {
     FILE* fp;
     char* checksum;
  
+    if (argc < 2) {
+        fprintf(stderr, "ERROR no port provided\n");
+        exit(1);
+    }
+
     //Create socket, socket(family, type, protocol)
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);    //AF_INET: IPv4 family; SOCK_DGRAM: datagram socket(UDP); 0: system default
- 
     if (sockfd < 0) {
         error("ERROR opening socket");
     }
  
+    portno = atoi(argv[1]);
+
+    //Setup the host_addr structure for use in bind call
+    //Server byte order
+    addr_con.sin_family = AF_INET;
+
+    //Convert short integer value for port must be converted into network byte order
+    addr_con.sin_port = htons(portno);
+
+    //Fill with current host's IP address
+    addr_con.sin_addr.s_addr = INADDR_ANY;
+
     //Bind the socket to the address
     if (bind(sockfd, (struct sockaddr*)&addr_con, sizeof(addr_con)) < 0) {
         error("ERROR on binding");

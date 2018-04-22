@@ -1,3 +1,4 @@
+/* The hostname and port number are passed as arguments */
 #define _BSD_SOURCE
 #include <arpa/inet.h>
 #include <stdio.h>
@@ -72,13 +73,11 @@ int main(int argc, char *argv[]) {
 
     //Create socket, socket(family, type, protocol)
     sockfd = socket(AF_INET, SOCK_STREAM, 0);   //AF_INET: IPv4 family; SOCK_STREAM: stream socket(TCP); 0: system default
-
     if (sockfd < 0) {
         error("ERROR opening socket");
     }
 
     server = gethostbyname(argv[1]);
-
     if (server == NULL) {
         fprintf(stderr, "ERROR no such host\n");
         exit(1);

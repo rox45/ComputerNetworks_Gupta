@@ -1,15 +1,15 @@
-// client code for UDP socket programming
+/* The hostname and port number are passed as arguments */
+#define _BSD_SOURCE
 #include <arpa/inet.h>
-#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
  
-#define IP_ADDRESS "127.0.0.1" // localhost
-#define PORT_NO 15050
 #define cipherKey 'S'
 #define sendrecvflag 0
  
@@ -71,15 +71,13 @@ char* exec(char* command) {
     return result;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
     int sockfd; //File descriptor in file descriptor table, stores value returned by socket system call
     int nBytes; //Number of bytes read
     struct sockaddr_in addr_con;   //struct containing server address
-    int addrlen = sizeof(addr_con); //Stores the length of the address
-
-    addr_con.sin_family = AF_INET;
-    addr_con.sin_port = htons(PORT_NO);
-    addr_con.sin_addr.s_addr = inet_addr(IP_ADDRESS);
+    int addrlen; //Stores the length of the address
+    int portno; //Port number for server to accept connections
+    struct hostent *server;
 
     char buffer[256];
     char* filename;
@@ -88,9 +86,32 @@ int main() {
     char* localChecksum;
     char* serverChecksum;
  
+    if (argc < 3) {
+       fprintf(stderr,"usage %s hostname port\n", argv[0]);
+       exit(1);
+    }
+
+    server = gethostbyname(argv[1]);
+    if (server == NULL) {
+        fprintf(stderr, "ERROR no such host\n");
+        exit(1);
+    }
+
+    portno = atoi(argv[2]);
+
+
+    //Setup the host_addr structure for use in bind call
+    addr_con.sin_family = AF_INET;
+    addr_con.sin_port = htons(portno);
+
+    bcopy((char *)server->h_addr,
+         (char *)&addr_con.sin_addr.s_addr,
+         server->h_length);
+
+    addrlen = sizeof(addr_con);
+
     //Create socket, socket(family, type, protocol)
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);    //AF_INET: IPv4 family; SOCK_DGRAM: datagram socket(UDP); 0: system default
- 
     if (sockfd < 0) {
         error("ERROR opening socket");
     }
