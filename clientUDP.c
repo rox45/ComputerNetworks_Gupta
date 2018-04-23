@@ -131,6 +131,7 @@ int main(int argc, char *argv[]) {
         memset(buffer, 0, 256);
 
         recvfrom(sockfd, buffer, 256, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen); //Get acknoledgement
+        printf("%s\n", buffer);
     }
 
     remove(filename);   //Remove file if already exists in client
@@ -162,9 +163,15 @@ int main(int argc, char *argv[]) {
     printf("Server file %s\n", serverChecksum);
     printf("Downloaded file %s\n", localChecksum);
 
-    //Warn if file checksums do not match
+    //Warn if file checksums do not match, send message to server
     if (strcmp(serverChecksum, localChecksum) != 0) {
         printf("WARNING: File is corrupted\n");
+        sendto(sockfd, "Message from client: WARNING: File is corrupted", 48, sendrecvflag, (struct sockaddr*)&addr_con, addrlen);
+
+    }
+    else {
+        printf("No errors in file transfer\n");
+        sendto(sockfd, "Message from client: No errors in file transfer", 48, sendrecvflag, (struct sockaddr*)&addr_con, addrlen);
     }
 
     fclose(fp);

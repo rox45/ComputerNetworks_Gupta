@@ -166,6 +166,10 @@ int main(int argc, char *argv[]) {
         memset(buffer, 0, 256);
     }
 
+    //Get acknoledgement that file checksums match or not
+    recvfrom(sockfd, buffer, 256, sendrecvflag, (struct sockaddr*)&addr_con, &addrlen);
+    printf("%s\n", buffer);
+
     fclose(fp);
     free(filename);
     return 0;
